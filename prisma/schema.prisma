@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  role     String // admin, teacher, student
+  name     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  student Student?
+  teacher Teacher?
+}
+
+model Student {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id])
+  enrollments Enrollment[]
+  grades     Grade[]
+  attendances Attendance[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Teacher {
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  user      User       @relation(fields: [userId], references: [id])
+  courses   Course[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Course {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?
+  teacherId   Int
+  teacher     Teacher       @relation(fields: [teacherId], references: [id])
+  enrollments Enrollment[]
+  grades      Grade[]
+  attendances Attendance[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Enrollment {
+  id       Int     @id @default(autoincrement())
+  studentId Int
+  student  Student @relation(fields: [studentId], references: [id])
+  courseId Int
+  course   Course  @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, courseId])
+}
+
+model Grade {
+  id        Int     @id @default(autoincrement())
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [id])
+  courseId  Int
+  course    Course  @relation(fields: [courseId], references: [id])
+  grade     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id])
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id])
+  date      DateTime
+  status    String   // present, absent
+  createdAt DateTime @default(now())
+}
